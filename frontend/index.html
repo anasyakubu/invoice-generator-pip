@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Invoice Generator</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Invoice Generator</h1>
+      <form id="invoice-form" enctype="multipart/form-data">
+        <h2>Client Information</h2>
+        <label for="clientName">Name:</label>
+        <input type="text" id="clientName" name="clientName" required />
+        <label for="clientEmail">Email:</label>
+        <input type="email" id="clientEmail" name="clientEmail" required />
+        <label for="clientCompany">Company:</label>
+        <input type="text" id="clientCompany" name="clientCompany" required />
+
+        <h2>Service Items</h2>
+        <div id="services">
+          <div class="service">
+            <label for="serviceDescription">Description:</label>
+            <input type="text" name="serviceDescription" required />
+            <label for="serviceRate">Rate:</label>
+            <input type="number" step="0.01" name="serviceRate" required />
+            <label for="serviceQuantity">Quantity:</label>
+            <input type="number" name="serviceQuantity" required />
+          </div>
+        </div>
+        <button type="button" id="add-service">Add Another Service</button>
+
+        <h2>Company Logo</h2>
+        <input type="file" id="companyLogo" name="logo" />
+
+        <button type="submit">Generate Invoice</button>
+      </form>
+    </div>
+    <script src="script.js"></script>
+  </body>
+</html>
