@@ -4,20 +4,25 @@ const multer = require("multer");
 const PDFDocument = require("pdfkit");
 const fs = require("fs");
 const path = require("path");
+const cors = require("cors"); // Import cors
 
 const app = express();
+app.use(cors()); // Use cors middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 const db = mysql.createConnection({
   host: "localhost",
   user: "root",
-  password: "password",
+  password: "",
   database: "invoice_generator",
 });
 
 db.connect((err) => {
-  if (err) throw err;
+  if (err) {
+    console.error("MySQL connection error:", err);
+    throw err;
+  }
   console.log("MySQL Connected...");
 });
 
@@ -29,7 +34,11 @@ app.post("/clients", (req, res) => {
   const { name, email, company } = req.body;
   const sql = "INSERT INTO clients (name, email, company) VALUES (?, ?, ?)";
   db.query(sql, [name, email, company], (err, result) => {
-    if (err) throw err;
+    if (err) {
+      console.error("Error inserting client:", err);
+      res.status(500).send("Error inserting client");
+      return;
+    }
     res.send("Client added");
   });
 });
@@ -38,7 +47,11 @@ app.post("/services", (req, res) => {
   const { description, rate } = req.body;
   const sql = "INSERT INTO services (description, rate) VALUES (?, ?)";
   db.query(sql, [description, rate], (err, result) => {
-    if (err) throw err;
+    if (err) {
+      console.error("Error inserting service:", err);
+      res.status(500).send("Error inserting service");
+      return;
+    }
     res.send("Service added");
   });
 });
@@ -49,7 +62,11 @@ app.post("/invoices", upload.single("logo"), (req, res) => {
 
   const sql = "INSERT INTO invoices (client_id, date) VALUES (?, NOW())";
   db.query(sql, [clientId], (err, result) => {
-    if (err) throw err;
+    if (err) {
+      console.error("Error inserting invoice:", err);
+      res.status(500).send("Error inserting invoice");
+      return;
+    }
     const invoiceId = result.insertId;
 
     const invoiceItems = JSON.parse(items);
@@ -57,18 +74,20 @@ app.post("/invoices", upload.single("logo"), (req, res) => {
       const sqlItem =
         "INSERT INTO invoice_items (invoice_id, service_id, quantity) VALUES (?, ?, ?)";
       db.query(sqlItem, [invoiceId, item.serviceId, item.quantity], (err) => {
-        if (err) throw err;
+        if (err) {
+          console.error("Error inserting invoice item:", err);
+        }
       });
     });
 
-    generateInvoice(invoiceId, logo.path, res);
+    generateInvoice(invoiceId, logo?.path, res);
   });
 });
 
 function generateInvoice(invoiceId, logoPath, res) {
   const sql = `
     SELECT i.id, i.date, c.name as clientName, c.company as clientCompany, c.email as clientEmail,
-        s.description as serviceDescription, s.rate as serviceRate, ii.quantity as itemQuantity
+          s.description as serviceDescription, s.rate as serviceRate, ii.quantity as itemQuantity
     FROM invoices i
     JOIN clients c ON i.client_id = c.id
     JOIN invoice_items ii ON i.id = ii.invoice_id
@@ -76,7 +95,17 @@ function generateInvoice(invoiceId, logoPath, res) {
     WHERE i.id = ?`;
 
   db.query(sql, [invoiceId], (err, result) => {
-    if (err) throw err;
+    if (err) {
+      console.error("Error fetching invoice data:", err);
+      res.status(500).send("Error generating invoice");
+      return;
+    }
+
+    if (!result.length) {
+      console.error("No invoice data found for id:", invoiceId);
+      res.status(404).send("Invoice not found");
+      return;
+    }
 
     const invoice = result[0];
     const doc = new PDFDocument();

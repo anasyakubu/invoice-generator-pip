@@ -38,9 +38,12 @@ document
     formData.append("items", JSON.stringify(services));
 
     try {
-      const response = await fetch("/invoices", {
+      const response = await fetch("http://localhost:9000/invoices", {
         method: "POST",
         body: formData,
+        headers: {
+          Accept: "application/json",
+        },
       });
 
       if (response.ok) {
