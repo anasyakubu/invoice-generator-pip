@@ -1,0 +1,163 @@
+# Invoice Generator
+
+This project is a simple invoice generator web application. It allows users to add services and generate invoices in PDF format. The backend is built with Express.js, MySQL, and PDFKit, while the frontend uses plain JavaScript and Axios for HTTP requests.
+
+## Table of Contents
+
+- [Installation](#installation)
+- [Usage](#usage)
+- [API Endpoints](#api-endpoints)
+- [Frontend Code](#frontend-code)
+- [Backend Code](#backend-code)
+- [License](#license)
+
+## Installation
+
+### Prerequisites
+
+- Node.js
+- MySQL
+
+### Steps
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/yourusername/invoice-generator.git
+   cd invoice-generator
+   ```
+
+2. Install backend dependencies:
+
+   ```bash
+   npm install
+   ```
+
+3. Set up the MySQL database:
+
+   - Create a database named `invoice_generator`.
+   - Create the necessary tables:
+
+   ```sql
+   CREATE TABLE clients (
+     id INT AUTO_INCREMENT PRIMARY KEY,
+     name VARCHAR(255) NOT NULL,
+     email VARCHAR(255) NOT NULL,
+     company VARCHAR(255) NOT NULL
+   );
+
+   CREATE TABLE services (
+     id INT AUTO_INCREMENT PRIMARY KEY,
+     description VARCHAR(255) NOT NULL,
+     rate DECIMAL(10, 2) NOT NULL
+   );
+
+   CREATE TABLE invoices (
+     id INT AUTO_INCREMENT PRIMARY KEY,
+     client_id INT NOT NULL,
+     date DATETIME DEFAULT CURRENT_TIMESTAMP,
+     FOREIGN KEY (client_id) REFERENCES clients(id)
+   );
+
+   CREATE TABLE invoice_items (
+     id INT AUTO_INCREMENT PRIMARY KEY,
+     invoice_id INT NOT NULL,
+     service_id INT NOT NULL,
+     quantity INT NOT NULL,
+     FOREIGN KEY (invoice_id) REFERENCES invoices(id),
+     FOREIGN KEY (service_id) REFERENCES services(id)
+   );
+   ```
+
+4. Start the backend server:
+
+   ```bash
+   node server.js
+   ```
+
+5. Open `index.html` in your browser to start the frontend.
+
+## Usage
+
+1. Open the application in your browser.
+2. Fill out the invoice form by adding services with descriptions, rates, and quantities.
+3. Submit the form to generate and download the invoice in PDF format.
+
+## API Endpoints
+
+### POST /clients
+
+- Description: Add a new client.
+- Request Body:
+
+  ```json
+  {
+    "name": "Client Name",
+    "email": "client@example.com",
+    "company": "Client Company"
+  }
+  ```
+
+- Response:
+
+  ```json
+  "Client added"
+  ```
+
+### POST /services
+
+- Description: Add a new service.
+- Request Body:
+
+  ```json
+  {
+    "description": "Service Description",
+    "rate": 100.0
+  }
+  ```
+
+- Response:
+
+  ```json
+  "Service added"
+  ```
+
+### POST /invoices
+
+- Description: Generate a new invoice.
+- Request Body:
+
+  FormData with fields:
+
+  - `clientId`: ID of the client.
+  - `items`: JSON string of the services including description, rate, and quantity.
+  - `logo` (optional): File upload for the company logo.
+
+- Response:
+
+  Download of the generated invoice PDF.
+
+## Frontend Code
+
+### index.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Invoice Generator</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script defer src="script.js"></script>
+  </head>
+  <body>
+    <h1>Invoice Generator</h1>
+    <form id="invoice-form">
+      <div id="services"></div>
+      <button type="button" id="add-service">Add Service</button>
+      <button type="submit">Generate Invoice</button>
+    </form>
+  </body>
+</html>
+```
