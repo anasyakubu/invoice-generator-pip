@@ -38,17 +38,20 @@ document
     formData.append("items", JSON.stringify(services));
 
     try {
-      const response = await fetch("http://localhost:9000/invoices", {
-        method: "POST",
-        body: formData,
-        headers: {
-          Accept: "application/json",
-        },
-      });
+      const response = await axios.post(
+        "http://localhost:9000/invoices",
+        formData,
+        {
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "multipart/form-data", // axios will set this automatically for FormData
+          },
+          responseType: "blob", // to handle the PDF file
+        }
+      );
 
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
+      if (response.status === 200) {
+        const url = URL.createObjectURL(response.data);
         const a = document.createElement("a");
         a.href = url;
         a.download = "invoice.pdf";

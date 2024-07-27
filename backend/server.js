@@ -4,10 +4,10 @@ const multer = require("multer");
 const PDFDocument = require("pdfkit");
 const fs = require("fs");
 const path = require("path");
-const cors = require("cors"); // Import cors
+const cors = require("cors");
 
 const app = express();
-app.use(cors()); // Use cors middleware
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -28,6 +28,14 @@ db.connect((err) => {
 
 // Multer setup for file uploads
 const upload = multer({ dest: "uploads/" });
+
+// Ensure directories exist
+if (!fs.existsSync("uploads")) {
+  fs.mkdirSync("uploads");
+}
+if (!fs.existsSync("invoices")) {
+  fs.mkdirSync("invoices");
+}
 
 // Routes
 app.post("/clients", (req, res) => {
